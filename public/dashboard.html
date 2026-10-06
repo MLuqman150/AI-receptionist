@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Receptionist Dashboard</title>
+<style>
+  :root { color-scheme: light; }
+  body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; background: #f4f5f7; margin: 0; }
+  .layout { display: flex; height: 100vh; }
+  .sidebar { width: 280px; background: #fff; border-right: 1px solid #e5e7eb; overflow-y: auto; }
+  .sidebar h2 { font-size: 14px; padding: 16px; margin: 0; border-bottom: 1px solid #eee; }
+  .conv-item { padding: 12px 16px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+  .conv-item:hover { background: #f9fafb; }
+  .conv-item.active { background: #eef2ff; }
+  .conv-item .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-bottom: 4px; }
+  .badge.escalated { background: #fef3c7; color: #92400e; }
+  .badge.human { background: #dbeafe; color: #1e40af; }
+  .conv-item .preview { font-size: 12px; color: #6b7280; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .main { flex: 1; display: flex; flex-direction: column; }
+  .toolbar { padding: 12px 20px; background: #fff; border-bottom: 1px solid #e5e7eb; display: flex; gap: 8px; align-items: center; }
+  .toolbar button { border: 1px solid #d1d5db; background: #fff; border-radius: 8px; padding: 6px 12px; font-size: 13px; cursor: pointer; }
+  .toolbar button.primary { background: #2563eb; color: #fff; border-color: #2563eb; }
+  #thread { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
+  .msg { max-width: 70%; padding: 10px 14px; border-radius: 14px; font-size: 14px; line-height: 1.4; white-space: pre-wrap; }
+  .msg.user { align-self: flex-start; background: #eef0f3; color: #111827; }
+  .msg.assistant { align-self: flex-end; background: #dbeafe; color: #1e3a8a; }
+  .msg.agent { align-self: flex-end; background: #2563eb; color: #fff; }
+  .msg.tool { align-self: center; background: #f3f4f6; color: #6b7280; font-size: 11px; font-family: monospace; max-width: 90%; }
+  .reply-bar { display: flex; gap: 8px; padding: 12px; border-top: 1px solid #eee; background: #fff; }
+  .reply-bar input { flex: 1; border: 1px solid #d1d5db; border-radius: 10px; padding: 10px 12px; font-size: 14px; }
+  .reply-bar button { border: none; background: #2563eb; color: #fff; border-radius: 10px; padding: 0 16px; cursor: pointer; }
+  .empty { color: #9ca3af; padding: 40px; text-align: center; font-size: 14px; }
+  .tabs { display: flex; gap: 4px; background: #fff; border-bottom: 1px solid #e5e7eb; padding: 0 16px; }
+  .tab-btn { border: none; background: none; padding: 12px 16px; font-size: 13px; cursor: pointer; color: #6b7280; border-bottom: 2px solid transparent; }
+  .tab-btn.active { color: #2563eb; border-bottom-color: #2563eb; font-weight: 600; }
+  .page { display: none; height: calc(100vh - 45px); }
+  .page.active { display: flex; }
+  #appointmentsPage { flex-direction: column; overflow-y: auto; padding: 20px; background: #fff; }
+  table.appts { border-collapse: collapse; width: 100%; font-size: 13px; }
+  table.appts th, table.appts td { text-align: left; padding: 8px 12px; border-bottom: 1px solid #eee; }
+  table.appts th { color: #6b7280; font-weight: 600; font-size: 11px; text-transform: uppercase; }
+  .status-pill { padding: 2px 8px; border-radius: 10px; font-size: 11px; }
+  .status-pill.confirmed { background: #dcfce7; color: #166534; }
+  .status-pill.cancelled { background: #fee2e2; color: #991b1b; }
+</style>
+</head>
+<body>
+<div class="tabs">
+  <button class="tab-btn active" data-page="conversationsPage">Conversations</button>
+  <button class="tab-btn" data-page="appointmentsPage">Appointments</button>
+</div>
+
+<div class="page active" id="conversationsPage">
+  <div class="layout">
+    <div class="sidebar">
+      <h2>Waiting for a human (<span id="count">0</span>)</h2>
+      <div id="convList"></div>
+    </div>
+    <div class="main">
+      <div class="toolbar" id="toolbar" style="display:none;">
+        <strong id="convTitle"></strong>
+        <span style="flex:1"></span>
+        <button id="pickupBtn">Pick up</button>
+        <button id="resolveBtn">Resolve</button>
+      </div>
+      <div id="thread"><div class="empty">Select a conversation on the left.</div></div>
+      <form class="reply-bar" id="replyForm" style="display:none;">
+        <input id="replyInput" autocomplete="off" placeholder="Reply as a human agent..." />
+        <button id="replySend">Send</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="appointmentsPage">
+  <table class="appts">
+    <thead>
+      <tr><th>When</th><th>Service</th><th>Customer</th><th>Phone</th><th>Status</th></tr>
+    </thead>
+    <tbody id="apptRows"></tbody>
+  </table>
+  <div id="apptEmpty" class="empty" style="display:none;">No appointments booked yet.</div>
+</div>
+
+<script src="/dashboard.js"></script>
+</body>
+</html>
+

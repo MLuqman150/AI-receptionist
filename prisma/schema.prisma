@@ -1,0 +1,73 @@
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [vector]
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+model Customer {
+  id            String         @id @default(uuid())
+  name          String?
+  phone         String?        @unique
+  email         String?
+  createdAt     DateTime       @default(now())
+  conversations Conversation[]
+  appointments  Appointment[]
+}
+
+model Conversation {
+  id         String    @id @default(uuid())
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  channel    String    @default("web") // web | voice | sms
+  status     String    @default("active") // active | escalated | closed
+  createdAt  DateTime  @default(now())
+  messages   Message[]
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  role           String // user | assistant | tool | system
+  content        String
+  toolName       String?
+  toolArgs       Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model Appointment {
+  id         String   @id @default(uuid())
+  customerId String
+  customer   Customer @relation(fields: [customerId], references: [id])
+  service    String
+  startTime  DateTime
+  endTime    DateTime
+  status     String   @default("confirmed") // confirmed | cancelled
+  createdAt  DateTime @default(now())
+
+  @@index([startTime, endTime])
+}
+
+model BusinessHours {
+  id        String @id @default(uuid())
+  dayOfWeek Int // 0 = Sunday ... 6 = Saturday
+  openTime  String // "09:00"
+  closeTime String // "17:00"
+}
+
+model KnowledgeChunk {
+  id        String                      @id @default(uuid())
+  source    String
+  content   String
+  embedding Unsupported("vector(384)")
+  createdAt DateTime                    @default(now())
+
+  @@map("knowledge_chunks")
+}
